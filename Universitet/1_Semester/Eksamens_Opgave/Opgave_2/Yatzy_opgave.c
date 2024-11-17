@@ -78,7 +78,7 @@ int Validate_Dice_Input(void) {
     
     printf("Enter the amount of dice (5 or more, less than 5 to quit): ");
     // Tjekker om input er et gyldigt tal og større end 5
-    while (!scanf("%i", &number_of_dice) || number_of_dice < MIN_DICE) {
+    while (!scanf("%i", &number_of_dice)) {
         printf("Invalid input! Please enter a number 5 or greater: ");
         clear_input();
     }
