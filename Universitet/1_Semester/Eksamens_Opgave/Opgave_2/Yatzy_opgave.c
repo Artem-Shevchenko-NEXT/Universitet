@@ -284,15 +284,27 @@ int Full_House_Score(int counts[]) {
     int three_of_a_kind_value = 0;
     int pair_value = 0;
 
-    for (int die_face_desc = DIE_MAX_EYES - 1; die_face_desc >= 0; die_face_desc--) {
-        if (counts[die_face_desc] >= 3 && three_of_a_kind_value == 0) {
+    // finder højeste af tre ens
+    for(int die_face_desc = DIE_MAX_EYES - 1; die_face_desc >= 0; die_face_desc--) {
+        if(counts[die_face_desc] >= 3) {
             three_of_a_kind_value = die_face_desc + 1;
-        } else if (counts[die_face_desc] >= 2 && (die_face_desc + 1) != three_of_a_kind_value) {
-            pair_value = die_face_desc + 1;
+            break;
         }
-        if (three_of_a_kind_value != 0 && pair_value != 0) {
-            return three_of_a_kind_value * 3 + pair_value * 2;
+    }
+
+    // Finer højeste af par hvis tre ens er fundet
+    if(three_of_a_kind_value != 0) {
+        for(int die_face_desc = DIE_MAX_EYES - 1; die_face_desc >= 0; die_face_desc--) {
+            if(counts[die_face_desc] >= 2 && (die_face_desc + 1) != three_of_a_kind_value) {
+                pair_value = die_face_desc + 1;
+                break;
+            }
         }
+    }
+
+    // Retunere scoret kun hvis begge værdier er fandt
+    if(three_of_a_kind_value != 0 && pair_value != 0) {
+        return three_of_a_kind_value * 3 + pair_value * 2;
     }
     return 0;
 }
