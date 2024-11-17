@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <time.h>
 #define MIN_DICE 5
-#define CONFIRMATION_THRESHOLD 40
+#define CONFIRMATION_THRESHOLD 10000
 #define YATZY_ROUNDS 15
 #define DIE_MAX_EYES 6
 #define SCORE_BOARD_SIZE 16
