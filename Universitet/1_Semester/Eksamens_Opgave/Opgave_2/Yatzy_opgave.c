@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#define MIN_DICE 5
+#define CONFIRMATION_THRESHOLD 40
 #define YATZY_ROUNDS 15
 #define DIE_MAX_EYES 6
 #define SCORE_BOARD_SIZE 16
@@ -15,6 +17,8 @@ typedef enum {ONES = 1, TWOS, THREES, FOURS, FIVES, SIXES, PAIR, TWO_PAIRS, THRE
 
 
 void YatzyGame(void);
+int Validate_Dice_Input(void);
+void clear_input();
 int* Roll_Multiple_Dice(int number_Of_Dice);
 void Print_Dice_Results(int* dice_Results, int number_Of_Dice);
 void Play_Rounds(int number_Of_Dice, int* score_Board);
@@ -32,6 +36,7 @@ int Yatzy_Score(int counts[]);
 int Display_Calculated_Score(int* score_board);
 int Is_There_Bonus(int* score_board);
 
+
 int main (void){
     srand(time(NULL));
     YatzyGame();
@@ -44,9 +49,7 @@ void YatzyGame(void){
     int game_counter = 1;
     while (1) {
         printf("\n=== Game %d ===\n", game_counter++);
-        printf("Yatzy with how many dies (a number less than 5 terminates) \n");
-        scanf("%d", &number_Of_Dice);
-
+        number_Of_Dice = Validate_Dice_Input();
         if (number_Of_Dice < 5) {
             break;
         }
@@ -57,6 +60,34 @@ void YatzyGame(void){
     }
     printf("Terminating the game.\n");
 
+}
+
+int Validate_Dice_Input(void) {
+    int number_of_dice;
+    char confirmation;
+    
+    printf("Enter the amount of dice (5 or more, less than 5 to quit): ");
+    
+    while (!scanf("%i", &number_of_dice) || number_of_dice < MIN_DICE) {
+        printf("Invalid input! Please enter a number 5 or greater: ");
+        clear_input();
+    }
+    
+    if (number_of_dice > CONFIRMATION_THRESHOLD) {
+        clear_input();  // Clear buffer before confirmation
+        printf("Are you sure you want to play with %d dice? (y/n): ", number_of_dice);
+        scanf("%c", &confirmation);
+        if (confirmation != 'y' && confirmation != 'Y') {
+            clear_input();
+            return Validate_Dice_Input(); // Ask for new input
+        }
+    }
+    
+    clear_input();
+    return number_of_dice;
+}
+void clear_input() {
+    while (getchar() != '\n');
 }
 
 int* Roll_Multiple_Dice(int number_Of_Dice){
@@ -82,9 +113,25 @@ void Play_Rounds(int number_Of_Dice,int* score_Board){
         int best_Score = Calculate_Best_Score(dice_Rolls, round,number_Of_Dice);
         score_Board[round] = best_Score;
 
-        printf("Round %d: ", round );
+        switch(round) {
+            case ONES: printf("1-ere   : "); break;
+            case TWOS: printf("2-ere   : "); break;
+            case THREES: printf("3-ere   : "); break;
+            case FOURS: printf("4-ere   : "); break;
+            case FIVES: printf("5-ere   : "); break;
+            case SIXES: printf("6-ere   : "); break;
+            case PAIR: printf("Et par  : "); break;
+            case TWO_PAIRS: printf("To par  : "); break;
+            case THREE_OF_A_KIND: printf("Tre ens : "); break;
+            case FOUR_OF_A_KIND: printf("Fire ens: "); break;
+            case SMALL_STRAIGHT: printf("Lille   : "); break;
+            case LARGE_STRAIGHT: printf("Stor    : "); break;
+            case FULL_HOUSE: printf("Fuld hus: "); break;
+            case CHANCE: printf("Chance  : "); break;
+            case YATZY: printf("YATZY   : "); break;
+        }
         Print_Dice_Results(dice_Rolls, number_Of_Dice);
-        printf("Best score for this round: %d\n", best_Score);
+        printf("Best possible score: %d\n", best_Score);
         free(dice_Rolls);
     }
 }
@@ -261,7 +308,6 @@ int Display_Calculated_Score(int* score_board) {
     int bonus = 0;
     int total_score = 0;
 
-    // Display upper section with Danish names
     printf("\nScore board:\n");
     for(int round = ONES; round <= SIXES; round++) {
         printf("%d-ere  : %d\n", round, score_board[round]);
@@ -271,7 +317,6 @@ int Display_Calculated_Score(int* score_board) {
     bonus = Is_There_Bonus(score_board);
     printf("BONUS  : %d\n\n", bonus);
 
-    // Display lower section with Danish names using switch
     for(int round = PAIR; round <= YATZY; round++) {
         switch(round) {
             case PAIR: printf("Et par : %d\n", score_board[round]); break;
