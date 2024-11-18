@@ -51,7 +51,8 @@ int main (void){
     return(0);
 }
 
-// Funktion der styrer hele Yatzy-spillet
+// Hoved kontrolløkke der styrer spilets tilstand 
+// Bruger statisk pointtavle-array og kører indtil spilleren indtaster < 5 terninger
 void YatzyGame(void){
     int number_Of_Dice;
     static int score_Board[SCORE_BOARD_SIZE];
@@ -71,7 +72,8 @@ void YatzyGame(void){
 
 }
 
-// Funktion til at validere brugerens input for antal terninger
+// Implementerer input validering med scanf for antal terninger
+// Indeholder sikkerhedstjek for store tal (>10000) med y/n bekræftelse 
 int Validate_Dice_Input(void) {
     int number_of_dice;
     char confirmation;
@@ -96,12 +98,26 @@ int Validate_Dice_Input(void) {
     clear_input();
     return number_of_dice;
 }
-// funktionen Rydder inputbufferen for at forhindre uønskede tegn i at blive læst
+// funktionen Rydder inputbufferen ved at slet tegn indtil linjeskift
+// Forhindrer uønskede tegn fra scanf operationen i at være læst 
 void clear_input() {
     while (getchar() != '\n');
 }
 
-// Funktion der afvikler alle runder i spillet for det aktuelle antal terninger
+// Allokerer dynamisk int array til terningekast med malloc
+// Genererer tilfældige tal 1-6 ved brug af rand() modulo operation
+int* Roll_Multiple_Dice(int number_Of_Dice){
+    int* dice_Results = malloc(number_Of_Dice * sizeof(int));
+
+    for(int current_die = 0;current_die < number_Of_Dice; current_die++){
+        dice_Results[current_die] =  (rand() % DIE_MAX_EYES) + 1;
+    } 
+
+    return dice_Results;   
+}
+
+//Itererer gennem 15 runder ved brug af enum-baseret runde sporing  
+// Håndterer hukommelsesallokering/deallokering af terningekast og pointberegning
 void Play_Rounds(int number_Of_Dice,int* score_Board){
     for(int round = ONES; round <= YATZY_ROUNDS; round++){
         int* dice_Rolls = Roll_Multiple_Dice(number_Of_Dice);
@@ -131,18 +147,10 @@ void Play_Rounds(int number_Of_Dice,int* score_Board){
     }
 }
 
-// Funktion der slår et angivet antal terninger og returnerer resultaterne
-int* Roll_Multiple_Dice(int number_Of_Dice){
-    int* dice_Results = malloc(number_Of_Dice * sizeof(int));
 
-    for(int current_die = 0;current_die < number_Of_Dice; current_die++){
-        dice_Results[current_die] =  (rand() % DIE_MAX_EYES) + 1;
-    } 
 
-    return dice_Results;   
-}
-
-// Funktion til at udskrive resultaterne af terningekastene
+// Tager pointer til terning-array og antal som parametre
+// Udskriver terningeværdier i lineært format
 void Print_Dice_Results(int* dice_Results, int number_Of_Dice) {
     printf("Dice results: ");
     for (int current_die_result = 0; current_die_result < number_Of_Dice; current_die_result++) {
@@ -150,7 +158,8 @@ void Print_Dice_Results(int* dice_Results, int number_Of_Dice) {
     }
 }
 
-// Funktion til at beregne den bedste score for en given runde baseret på terningekastene
+// Bruger frekvenstællingsarray counts[] til at spore terningeforekomster
+// Implementerer switch-case til at route til passende scoringsfunktion
 int Calculate_Best_Score(int* dice_Rolls, int round, int number_Of_Dice){
     int score = 0;
     int counts[DIE_MAX_EYES] = {0}; // Array til at tælle antallet af hver terningværdi
@@ -213,12 +222,14 @@ int Calculate_Best_Score(int* dice_Rolls, int round, int number_Of_Dice){
     return score; // Returnerer den beregnede score for runden
 }
 
-// Funktion til at finde den højeste mulige par-score
+// Tager frekvensarray og målværdi som parametre
+// Multiplicerer antal af specifik værdi med værdien selv for øvre sektion scoring
 int Sum_Of_Same_Value(int counts[], int value) {
     return counts[value - 1] * value;
 }
 
-// Funktion til at summere værdierne af ens terninger (1'ere til 6'ere)
+// Itererer frekvensarray baglæns for at finde højeste par
+// Returnerer fordoblet værdi af højest fundne par eller 0 hvis ingen findes
 int Best_Pair_Score(int counts[]) {
     for (int die_face_desc = DIE_MAX_EYES - 1; die_face_desc >= 0; die_face_desc--) {
         if (counts[die_face_desc] >= 2) {
@@ -228,7 +239,8 @@ int Best_Pair_Score(int counts[]) {
     return 0;
 }
 
-// Funktion til at finde den højeste mulige par-score
+// Bruger to pass frekvensarray tjek for distinkte par
+// Returnerer sum af begge par-værdier eller 0 hvis kriterier ikke er opfyldt
 int Best_Two_Pairs_Score(int counts[]) {
     int score = 0;
     int pairs_found = 0;
@@ -244,7 +256,8 @@ int Best_Two_Pairs_Score(int counts[]) {
     return 0;
 }
 
-// Funktion til at finde den bedste tre ens-score
+// Scanner frekvensarray baglæns for antal >= 3
+// Returnerer tredoblet værdi af højest fundne tre ens eller 0
 int Best_Three_Of_A_Kind_Score(int counts[]) {
     for (int die_face_desc = DIE_MAX_EYES - 1; die_face_desc >= 0; die_face_desc--) {
         if (counts[die_face_desc] >= 3) {
@@ -253,7 +266,8 @@ int Best_Three_Of_A_Kind_Score(int counts[]) {
     }
     return 0;
 }
-// Funktion til at finde den bedste fire ens-score
+// Scanner frekvensarray baglæns for antal >= 4
+// Returnerer firedoblet værdi af funden fire ens  eller 0
 int Best_Four_Of_A_Kind_Score(int counts[]) {
     for (int die_face_desc = DIE_MAX_EYES - 1; die_face_desc >= 0; die_face_desc--) {
         if (counts[die_face_desc] >= 4) {
@@ -263,7 +277,8 @@ int Best_Four_Of_A_Kind_Score(int counts[]) {
     return 0;
 }
 
-// Funktion til at beregne score for lille straight
+// Tjekker frekvensarray positioner 0-4 for >= 1 hver
+// Returnerer 15 hvis sekvens findes, ellers 0
 int Small_Straight_Score(int counts[]) {
     if (counts[0] >= 1 && counts[1] >= 1 && counts[2] >= 1 && counts[3] >= 1 && counts[4] >= 1) {
         return SMALL_STRAIGHT_SCORE;
@@ -271,7 +286,8 @@ int Small_Straight_Score(int counts[]) {
     return 0;
 }
 
-// Funktion til at beregne score for stor straight
+// Tjekker frekvensarray positioner 1-5 for >= 1 hver
+// Returnerer 20 hvis sekvens findes, ellers 0
 int Large_Straight_Score(int counts[]) {
     if (counts[1] >= 1 && counts[2] >= 1 && counts[3] >= 1 && counts[4] >= 1 && counts[5] >= 1) {
         return LARGE_STRAIGHT_SCORE;
@@ -279,7 +295,8 @@ int Large_Straight_Score(int counts[]) {
     return 0;
 }
 
-// Funktion til at beregne score for fuldt hus
+// Bruger to pass algoritme til at finde tre ens og separat par
+// Returnerer kombineret score af tre ens og par-værdier hvis begge findes ellers 0
 int Full_House_Score(int counts[]) {
     int three_of_a_kind_value = 0;
     int pair_value = 0;
@@ -309,7 +326,8 @@ int Full_House_Score(int counts[]) {
     return 0;
 }
 
-// Funktion til at summere værdien af de fem højeste terninger (bruges til Chance)
+// Implementerer baglæns frekvensarraysom holder værdien for de højeste 5 terninger
+// Akkumulerer score mens der holdes styr på terning-tæller limit
 int Sum_Five_Dice(int counts[]) {
     int score = 0;
     int dice_count = 0;
@@ -328,7 +346,8 @@ int Sum_Five_Dice(int counts[]) {
     return score;
 }
 
-// Funktion til at beregne score for Yatzy
+// Lineær scanning af frekvensarray for præcis antal 5
+// Returnerer 50 point hvis fundet, ellers 
 int Yatzy_Score(int counts[]) {
     for (int die_face_desc = 0; die_face_desc < DIE_MAX_EYES; die_face_desc++) {
         if (counts[die_face_desc] == 5) {
@@ -338,7 +357,8 @@ int Yatzy_Score(int counts[]) {
     return 0;
 }
 
-// Funktion til at vise den samlede score fra scoretavlen
+// Beregner sektions summer og anvender bonus-regler
+// Bruger switch-case til formateret output af hver scoringskategori
 int Display_Calculated_Score(int* score_board) {
     int upper_section_sum = 0;
     int lower_section_sum = 0;
@@ -376,7 +396,8 @@ int Display_Calculated_Score(int* score_board) {
     return total_score;
 }
 
-// Funktion til at tjekke om spilleren har opnået bonus i øverste sektion
+// Sammenligner øvre sektions sum med 63 grænseværdi
+// Returnerer 50 point bonus hvis grænse nået, ellers 0
 int Is_There_Bonus(int upper_section_sum) {
     if (upper_section_sum >= BONUS_THRESHOLD) {
         return BONUS_SCORE;
